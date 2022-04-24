@@ -1,13 +1,14 @@
 /**
  *
- * @author Anass Ferrak aka " TheLordA " <an.ferrak@gmail.com>
- * GitHub repo: https://github.com/TheLordA/Instagram-Web-App-MERN-Stack-Clone
+ * @author Anass Ferrak aka " TheLordA " <ferrak.anass@gmail.com>
+ * GitHub repo: https://github.com/TheLordA/Instagram-Clone
  *
  */
 
 import React, { useContext, useState } from "react";
 import { Link, useHistory } from "react-router-dom";
-import { UserContext } from "../App";
+import AuthenticationContext from "../contexts/auth/Auth.context";
+import { LOGOUT } from "../contexts/types";
 import Axios from "axios";
 
 // Material-UI Components
@@ -128,8 +129,20 @@ const useStyles = makeStyles((theme) => ({
 	},
 }));
 
-const Navbar = (props) => {
-	const { state, dispatch } = useContext(UserContext);
+const getModalStyle = () => {
+	const top = 50;
+	const left = 50;
+
+	return {
+		top: `${top}%`,
+		left: `${left}%`,
+		transform: `translate(-${top}%, -${left}%)`,
+		border: "1px solid rgba(0, 0, 0, 0.015)",
+	};
+};
+
+const Navbar = () => {
+	const { state, dispatch } = useContext(AuthenticationContext);
 	const history = useHistory();
 	const [search, setSearch] = useState([]);
 
@@ -142,7 +155,7 @@ const Navbar = (props) => {
 	const [modalStyle] = useState(getModalStyle);
 	const [openModal, setOpenModal] = useState(false);
 
-	const FindUser = (pattern) => {
+	const findUser = (pattern) => {
 		if (!(pattern === "")) {
 			const URL = `http://localhost:5000/users-research`;
 			const config = {
@@ -175,7 +188,7 @@ const Navbar = (props) => {
 
 	const handleLogOut = () => {
 		localStorage.clear();
-		dispatch({ type: "CLEAR" });
+		dispatch({ type: LOGOUT });
 		history.push("/login");
 	};
 
@@ -277,7 +290,7 @@ const Navbar = (props) => {
 						input: classes.inputInput,
 					}}
 					inputProps={{ "aria-label": "search" }}
-					onChange={(e) => FindUser(e.target.value)}
+					onChange={(e) => findUser(e.target.value)}
 				/>
 			</div>
 			<List className={classes.root}>
@@ -290,14 +303,23 @@ const Navbar = (props) => {
 									to={item._id !== state._id ? `/profile/${item._id}` : "/profile"}
 									onClick={handleCloseModal}
 								>
-									<Divider variant="inset" component="li" style={{ marginLeft: "0px" }} />
+									<Divider
+										variant="inset"
+										component="li"
+										style={{ marginLeft: "0px" }}
+									/>
 									<ListItem alignItems="flex-start">
 										<ListItemAvatar>
-											<Avatar alt="Remy Sharp" src="/static/images/avatar/1.jpg" />
+											<Avatar
+												alt="Remy Sharp"
+												src="/static/images/avatar/1.jpg"
+											/>
 										</ListItemAvatar>
 										<ListItemText
 											primary={item.Name}
-											secondary={<React.Fragment>{item.Email}</React.Fragment>}
+											secondary={
+												<React.Fragment>{item.Email}</React.Fragment>
+											}
 										/>
 									</ListItem>
 								</Link>
@@ -307,18 +329,6 @@ const Navbar = (props) => {
 			</List>
 		</div>
 	);
-
-	function getModalStyle() {
-		const top = 50;
-		const left = 50;
-
-		return {
-			top: `${top}%`,
-			left: `${left}%`,
-			transform: `translate(-${top}%, -${left}%)`,
-			border: "1px solid rgba(0, 0, 0, 0.015)",
-		};
-	}
 
 	return (
 		<nav>
@@ -332,13 +342,17 @@ const Navbar = (props) => {
 						</Link>
 						<div className={classes.grow} />
 						<div className={classes.sectionDesktop}>
-							<BottomNavigation value={props.nav}>
+							<BottomNavigation>
 								<BottomNavigationAction
 									label="Search"
 									value="search"
 									onClick={handleOpenModal}
 									style={{ "color": "rgba(0, 0, 0, 0.54)" }}
-									icon={<SearchOutlinedIcon style={{ "color": "rgba(0, 0, 0, 0.54)" }} />}
+									icon={
+										<SearchOutlinedIcon
+											style={{ "color": "rgba(0, 0, 0, 0.54)" }}
+										/>
+									}
 								/>
 								<BottomNavigationAction
 									label="Home"

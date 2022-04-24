@@ -16,8 +16,6 @@ import { makeStyles } from "@material-ui/core/styles";
 import Button from "@material-ui/core/Button";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import TextField from "@material-ui/core/TextField";
-import FormControlLabel from "@material-ui/core/FormControlLabel";
-import Checkbox from "@material-ui/core/Checkbox";
 import Grid from "@material-ui/core/Grid";
 import Box from "@material-ui/core/Box";
 import Typography from "@material-ui/core/Typography";
@@ -87,7 +85,7 @@ const Signup = () => {
 		}
 	};
 
-	const PostData = () => {
+	const handlePostData = () => {
 		// Here we check just if the given email has a correct format
 		if (EmailRegex.test(email)) {
 			axios.post(SIGNUP_URL, {
@@ -106,7 +104,7 @@ const Signup = () => {
 						// set a timeOut before redirecting the user to login page
 						timerRef.current = setTimeout(() => {
 							history.push("/login");
-						}, 3000);
+						}, 2800);
 					}
 				})
 				.catch((err) => {
@@ -117,6 +115,7 @@ const Signup = () => {
 			setFormatValidation(true);
 		}
 	};
+
 	return (
 		<Container component="main" maxWidth="xs">
 			<CssBaseline />
@@ -194,11 +193,11 @@ const Signup = () => {
 						variant="outlined"
 						color="primary"
 						className={classes.submit}
-						onClick={PostData}
+						onClick={handlePostData}
 					>
 						Sign Up
 					</Button>
-					<Grid container justify="flex-end">
+					<Grid container justifyContent="flex-end">
 						<Grid item>
 							<Link to="/login" style={{ textDecoration: "none" }}>
 								Already have an account? Sign in

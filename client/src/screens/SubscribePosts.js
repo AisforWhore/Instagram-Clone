@@ -1,15 +1,15 @@
 /**
  *
- * @author Anass Ferrak aka " TheLordA " <an.ferrak@gmail.com>
- * GitHub repo: https://github.com/TheLordA/Instagram-Web-App-MERN-Stack-Clone
+ * @author Anass Ferrak aka " TheLordA " <ferrak.anass@gmail.com>
+ * GitHub repo: https://github.com/TheLordA/Instagram-Clone
  *
  */
 
 import React, { useState, useEffect, useContext } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
-import { UserContext } from "../App";
-import { config, SUB_POST_URL } from "../config/constants";
+import AuthenticationContext from "../contexts/auth/Auth.context";
+import { config as axiosConfig, SUB_POST_URL } from "../config/constants";
 // Material-UI Components
 import { makeStyles } from "@material-ui/core/styles";
 import Card from "@material-ui/core/Card";
@@ -30,6 +30,7 @@ import FavoriteBorderIcon from "@material-ui/icons/FavoriteBorder";
 import ChatBubbleOutlineIcon from "@material-ui/icons/ChatBubbleOutline";
 import SendIcon from "@material-ui/icons/Send";
 import DoubleArrowIcon from "@material-ui/icons/DoubleArrow";
+import Navbar from "../components/Navbar";
 
 // General styles
 const useStyles = makeStyles((theme) => ({
@@ -116,15 +117,16 @@ const useStyles = makeStyles((theme) => ({
 
 const SubscribePost = () => {
 	const classes = useStyles();
-	const { state } = useContext(UserContext);
+	const { state } = useContext(AuthenticationContext);
 
 	const [data, setData] = useState([]);
 	const [showSend, setShowSend] = useState(false);
 	const [comment, setComment] = useState("");
 
+	const config = axiosConfig(localStorage.getItem("jwt"));
+
 	useEffect(() => {
 		axios.get(SUB_POST_URL, config).then((res) => {
-			console.log(res.data.posts);
 			setData(res.data.posts);
 		});
 	}, []);
@@ -140,7 +142,8 @@ const SubscribePost = () => {
 			})
 			.catch((err) => console.log(err));
 	};
-	const UnlikePost = (id) => {
+
+	const unlikePost = (id) => {
 		axios.put(`http://localhost:5000/Unlike`, { postId: id }, config)
 			.then((res) => {
 				const newData = data.map((item) => {
@@ -151,6 +154,7 @@ const SubscribePost = () => {
 			})
 			.catch((err) => console.log(err));
 	};
+
 	const makeComment = (text, postId) => {
 		setComment("");
 		axios.put(`http://localhost:5000/comment`, { text, postId }, config)
@@ -163,6 +167,7 @@ const SubscribePost = () => {
 			})
 			.catch((err) => console.log(err));
 	};
+
 	const deletePost = (postId) => {
 		axios.delete(`http://localhost:5000/deletepost/${postId}`, config).then((res) => {
 			const newData = data.filter((item) => {
@@ -172,158 +177,174 @@ const SubscribePost = () => {
 		});
 	};
 
-	return data.map((item) => (
-		<div className="home" key={item._id}>
-			<Card className={classes.root}>
-				<CardHeader
-					className={classes.header}
-					avatar={
-						<Avatar>
-							<img
-								className={classes.avatar}
-								alt=""
-								src={`data:${item.PhotoType};base64,${item.Photo}`}
-							/>
-						</Avatar>
-					}
-					title={
-						<Link
-							className={classes.links}
-							to={item.PostedBy._id !== state._id ? `/profile/${item.PostedBy._id}` : "/profile"}
-						>
-							{item.PostedBy.Name}
-						</Link>
-					}
-					subheader="September 14, 2016"
-				/>
-
-				<CardMedia
-					className={classes.media}
-					image={`data:${item.PhotoType};base64,${item.Photo}`}
-					title="Paella dish"
-				/>
-
-				<CardActions className={classes.likeBar} disableSpacing>
-					{item.Likes.includes(state._id) ? (
-						<IconButton
-							aria-label="Like"
-							color="secondary"
-							onClick={() => {
-								UnlikePost(item._id);
-							}}
-						>
-							<FavoriteIcon />
-						</IconButton>
-					) : (
-						<IconButton
-							aria-label="Like"
-							onClick={() => {
-								likePost(item._id);
-							}}
-						>
-							<FavoriteBorderIcon />
-						</IconButton>
-					)}
-					<IconButton aria-label="comments">
-						<ChatBubbleOutlineIcon />
-					</IconButton>
-				</CardActions>
-
-				<CardContent>
-					<Typography variant="subtitle2" display="block" gutterBottom>
-						{item.Likes.length} Likes
-					</Typography>
-					<Typography variant="body2" color="textSecondary" component="p">
-						{item.Body}
-					</Typography>
-				</CardContent>
-
-				<Divider variant="middle" />
-
-				<List>
-					{item.Comments.map((cmt) => {
-						return (
-							<ListItem className={classes.comment_item} alignItems="flex-start" key={cmt._id}>
-								<ListItemText
-									secondary={
-										<React.Fragment>
-											<Typography
-												component="span"
-												variant="body2"
-												className={classes.inline}
-												color="textPrimary"
-											>
-												<Link
-													className={classes.links}
-													to={
-														cmt.PostedBy._id !== state._id
-															? `/profile/${cmt.PostedBy._id}`
-															: "/profile"
-													}
-												>
-													{cmt.PostedBy.Name}
-												</Link>
-											</Typography>
-											{" — "}
-											{cmt.Text}
-										</React.Fragment>
+	return (
+		<>
+			<Navbar />
+			{data.map((item) => (
+				<div className="home" key={item._id}>
+					<Card className={classes.root}>
+						<CardHeader
+							className={classes.header}
+							avatar={
+								<Avatar>
+									<img
+										className={classes.avatar}
+										alt=""
+										src={`data:${item.PhotoType};base64,${item.Photo}`}
+									/>
+								</Avatar>
+							}
+							title={
+								<Link
+									className={classes.links}
+									to={
+										item.PostedBy._id !== state._id
+											? `/profile/${item.PostedBy._id}`
+											: "/profile"
 									}
-								/>
-							</ListItem>
-						);
-					})}
-					{item.Comments.length === 0 ? (
-						<ListItem alignItems="flex-start" style={{ left: "38%" }}>
-							<Typography variant="caption" display="block" gutterBottom>
-								No Comments yet
-							</Typography>
-						</ListItem>
-					) : null}
-					{item.Comments.length > 3 && item.Comments.length !== 0 ? (
-						<ListItem alignItems="flex-start" className={classes.comment_item_see_more}>
-							<Typography variant="caption" display="block" gutterBottom>
-								See all {item.Comments.length} comments
-							</Typography>
-							<DoubleArrowIcon className={classes.comments_icon_see_more} />
-						</ListItem>
-					) : null}
-				</List>
-
-				<Divider variant="middle" />
-
-				<CardContent className={classes.comments}>
-					<Avatar>
-						<img
-							className={classes.avatar}
-							alt=""
-							src="https://images.unsplash.com/photo-1537815749002-de6a533c64db?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=500&q=60"
+								>
+									{item.PostedBy.Name}
+								</Link>
+							}
+							subheader="September 14, 2016"
 						/>
-					</Avatar>
-					<TextField
-						multiline
-						rows={1}
-						placeholder="Add your comment..."
-						variant="outlined"
-						value={comment}
-						onChange={(event) => {
-							event.preventDefault();
-							setComment(event.target.value);
-							setShowSend(true);
-							if (event.target.value === "") setShowSend(false);
-						}}
-					/>
-					<IconButton
-						aria-label="add to favorites"
-						className={classes.comments_icon}
-						disabled={!showSend}
-						onClick={() => makeComment(comment, item._id)}
-					>
-						<SendIcon />
-					</IconButton>
-				</CardContent>
-			</Card>
-		</div>
-	));
+
+						<CardMedia
+							className={classes.media}
+							image={`data:${item.PhotoType};base64,${item.Photo}`}
+							title="Paella dish"
+						/>
+
+						<CardActions className={classes.likeBar} disableSpacing>
+							{item.Likes.includes(state._id) ? (
+								<IconButton
+									aria-label="Like"
+									color="secondary"
+									onClick={() => {
+										unlikePost(item._id);
+									}}
+								>
+									<FavoriteIcon />
+								</IconButton>
+							) : (
+								<IconButton
+									aria-label="Like"
+									onClick={() => {
+										likePost(item._id);
+									}}
+								>
+									<FavoriteBorderIcon />
+								</IconButton>
+							)}
+							<IconButton aria-label="comments">
+								<ChatBubbleOutlineIcon />
+							</IconButton>
+						</CardActions>
+
+						<CardContent>
+							<Typography variant="subtitle2" display="block" gutterBottom>
+								{item.Likes.length} Likes
+							</Typography>
+							<Typography variant="body2" color="textSecondary" component="p">
+								{item.Body}
+							</Typography>
+						</CardContent>
+
+						<Divider variant="middle" />
+
+						<List>
+							{item.Comments.map((cmt) => {
+								return (
+									<ListItem
+										className={classes.comment_item}
+										alignItems="flex-start"
+										key={cmt._id}
+									>
+										<ListItemText
+											secondary={
+												<React.Fragment>
+													<Typography
+														component="span"
+														variant="body2"
+														className={classes.inline}
+														color="textPrimary"
+													>
+														<Link
+															className={classes.links}
+															to={
+																cmt.PostedBy._id !== state._id
+																	? `/profile/${cmt.PostedBy._id}`
+																	: "/profile"
+															}
+														>
+															{cmt.PostedBy.Name}
+														</Link>
+													</Typography>
+													{" — "}
+													{cmt.Text}
+												</React.Fragment>
+											}
+										/>
+									</ListItem>
+								);
+							})}
+							{item.Comments.length === 0 ? (
+								<ListItem alignItems="flex-start" style={{ left: "38%" }}>
+									<Typography variant="caption" display="block" gutterBottom>
+										No Comments yet
+									</Typography>
+								</ListItem>
+							) : null}
+							{item.Comments.length > 3 && item.Comments.length !== 0 ? (
+								<ListItem
+									alignItems="flex-start"
+									className={classes.comment_item_see_more}
+								>
+									<Typography variant="caption" display="block" gutterBottom>
+										See all {item.Comments.length} comments
+									</Typography>
+									<DoubleArrowIcon className={classes.comments_icon_see_more} />
+								</ListItem>
+							) : null}
+						</List>
+
+						<Divider variant="middle" />
+
+						<CardContent className={classes.comments}>
+							<Avatar>
+								<img
+									className={classes.avatar}
+									alt=""
+									src="https://images.unsplash.com/photo-1537815749002-de6a533c64db?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=500&q=60"
+								/>
+							</Avatar>
+							<TextField
+								multiline
+								rows={1}
+								placeholder="Add your comment..."
+								variant="outlined"
+								value={comment}
+								onChange={(event) => {
+									event.preventDefault();
+									setComment(event.target.value);
+									setShowSend(true);
+									if (event.target.value === "") setShowSend(false);
+								}}
+							/>
+							<IconButton
+								aria-label="add to favorites"
+								className={classes.comments_icon}
+								disabled={!showSend}
+								onClick={() => makeComment(comment, item._id)}
+							>
+								<SendIcon />
+							</IconButton>
+						</CardContent>
+					</Card>
+				</div>
+			))}
+		</>
+	);
 };
 
 export default SubscribePost;

@@ -1,7 +1,7 @@
 /**
  *
- * @author Anass Ferrak aka " TheLordA " <an.ferrak@gmail.com>
- * GitHub repo: https://github.com/TheLordA/Instagram-Web-App-MERN-Stack-Clone
+ * @author Anass Ferrak aka " TheLordA " <ferrak.anass@gmail.com>
+ * GitHub repo: https://github.com/TheLordA/Instagram-Clone
  *
  */
 
@@ -75,7 +75,7 @@ const NewPass = () => {
 		[]
 	);
 
-	const PostData = () => {
+	const handlePostData = () => {
 		axios.post(NEW_PWD_URL, { password, token })
 			.then((res) => {
 				const data = res.data;
@@ -159,7 +159,7 @@ const NewPass = () => {
 								color="primary"
 								className={classes.submit}
 								disabled={password !== "" && confirmPassword !== "" ? false : true}
-								onClick={() => PostData()}
+								onClick={handlePostData}
 							>
 								Submit The New Password
 							</Button>

@@ -75,6 +75,7 @@ const Reset = () => {
 		},
 		[]
 	);
+
 	const handleInputChanges = (e) => {
 		switch (e.target.name) {
 			case "email":
@@ -86,7 +87,7 @@ const Reset = () => {
 		}
 	};
 
-	const PostData = () => {
+	const handlePostData = () => {
 		if (EmailRegex.test(email)) {
 			axios.post(RESET_PWD_URL, { email })
 				.then((res) => {
@@ -164,7 +165,7 @@ const Reset = () => {
 								color="primary"
 								className={classes.submit}
 								disabled={email !== "" ? false : true}
-								onClick={PostData}
+								onClick={handlePostData}
 							>
 								Reset your Password
 							</Button>

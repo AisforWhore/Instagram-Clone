@@ -7,7 +7,8 @@
 
 import React, { useState, useContext } from "react";
 import { Link, useHistory } from "react-router-dom";
-import { UserContext } from "../App";
+import AuthenticationContext from "../contexts/auth/Auth.context";
+import { FETCH_USER_DATA } from "../contexts/types.js";
 import { LOGIN_URL } from "../config/constants";
 import Copyright from "../components/Copyight";
 import { EmailRegex } from "../utils/regex";
@@ -53,7 +54,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const Login = () => {
-	const { dispatch } = useContext(UserContext);
+	const { dispatch } = useContext(AuthenticationContext);
 
 	const history = useHistory();
 	const classes = useStyles();
@@ -76,7 +77,7 @@ const Login = () => {
 		}
 	};
 
-	const PostData = () => {
+	const handlePostData = () => {
 		// the Regex email validation was token from : https://emailregex.com/
 		if (EmailRegex.test(email)) {
 			axios.post(LOGIN_URL, { password, email })
@@ -90,7 +91,7 @@ const Login = () => {
 						localStorage.setItem("jwt", data.token);
 						// we also store the user details
 						localStorage.setItem("user", JSON.stringify(data.user));
-						dispatch({ type: "USER", payload: data.user });
+						dispatch({ type: FETCH_USER_DATA, payload: data.user });
 						// we redirect the user to home page
 						history.push("/");
 					}
@@ -159,7 +160,7 @@ const Login = () => {
 								color="primary"
 								className={classes.submit}
 								disabled={email !== "" && password !== "" ? false : true}
-								onClick={PostData}
+								onClick={handlePostData}
 							>
 								Sign In
 							</Button>

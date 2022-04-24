@@ -1,16 +1,17 @@
 /**
  *
- * @author Anass Ferrak aka " TheLordA " <an.ferrak@gmail.com>
- * GitHub repo: https://github.com/TheLordA/Instagram-Web-App-MERN-Stack-Clone
+ * @author Anass Ferrak aka " TheLordA " <ferrak.anass@gmail.com>
+ * GitHub repo: https://github.com/TheLordA/Instagram-Clone
  *
  */
 
 import React, { useEffect, useState, useContext } from "react";
 import { Link } from "react-router-dom";
-import { UserContext } from "../App";
 import axios from "axios";
+import AuthenticationContext from "../contexts/auth/Auth.context";
 import VerticalTabs from "../components/VerticalTabs.js";
-import { config, MY_POST_URL, MY_BOOKMARKS_URL } from "../config/constants";
+import Navbar from "../components/Navbar";
+import { config as axiosConfig, MY_POST_URL, MY_BOOKMARKS_URL } from "../config/constants";
 
 // Material-UI Components
 import { makeStyles, withStyles } from "@material-ui/styles";
@@ -94,21 +95,23 @@ const DialogActions = withStyles((theme) => ({
 }))(MuiDialogActions);
 
 // Tabs data container
-function TabPanel(props) {
+const TabPanel = (props) => {
 	const { children, value, index, ...other } = props;
 	return (
 		<div role="tabpanel" hidden={value !== index} {...other}>
 			{value === index && <Box p={3}>{children}</Box>}
 		</div>
 	);
-}
+};
 
 const ProfilePage = () => {
 	const classes = useStyles();
-	const { state } = useContext(UserContext);
+	const { state } = useContext(AuthenticationContext);
 	const [data, setData] = useState([]);
 	const [bookmarks, setBookmarks] = useState([]);
 	const [value, setValue] = useState("Posts");
+
+	const config = axiosConfig(localStorage.getItem("jwt"));
 
 	useEffect(() => {
 		axios.get(MY_POST_URL, config).then((res) => {
@@ -130,7 +133,8 @@ const ProfilePage = () => {
 	};
 
 	return (
-		<React.Fragment>
+		<>
+			<Navbar />
 			<CssBaseline />
 			<Box component="main" className={classes.root}>
 				{/* User Profile Data Goes Here */}
@@ -147,7 +151,7 @@ const ProfilePage = () => {
 							<Box clone mb="20px">
 								<Grid container alignItems="center">
 									<Typography variant="h5">
-										{state ? state.Name : "IsLoading ..."}
+										{state ? state.user.Name : "IsLoading ..."}
 									</Typography>
 									<Button
 										className={classes.editButton}
@@ -172,13 +176,21 @@ const ProfilePage = () => {
 									</Grid>
 									<Grid item>
 										<Typography variant="subtitle1">
-											<b>{state ? state.Followers.length : "IsLoading ..."}</b>{" "}
+											<b>
+												{state
+													? state.user.Followers.length
+													: "IsLoading ..."}
+											</b>{" "}
 											followers
 										</Typography>
 									</Grid>
 									<Grid item>
 										<Typography variant="subtitle1">
-											<b>{state ? state.Following.length : "IsLoading ..."}</b>{" "}
+											<b>
+												{state
+													? state.user.Following.length
+													: "IsLoading ..."}
+											</b>{" "}
 											following
 										</Typography>
 									</Grid>
@@ -207,7 +219,12 @@ const ProfilePage = () => {
 					<Tab label="Posts" value="Posts" icon={<Icon>grid_on_outlined</Icon>} />
 					<Tab label="IGTV" value="IGTV" icon={<Icon>live_tv</Icon>} disabled />
 					<Tab label="Saved" value="Saved" icon={<Icon>bookmark_border_outlined</Icon>} />
-					<Tab label="Tagged" value="Tagged" icon={<Icon>local_offer_outlined</Icon>} disabled />
+					<Tab
+						label="Tagged"
+						value="Tagged"
+						icon={<Icon>local_offer_outlined</Icon>}
+						disabled
+					/>
 				</Tabs>
 				{/* Tabs Data Goes Here */}
 				<TabPanel value={value} index="Posts">
@@ -216,7 +233,7 @@ const ProfilePage = () => {
 							<Grid item xs={4} key={item.id} className={classes.posts}>
 								<img
 									className={classes.posts_img}
-									alt="post image"
+									alt="post"
 									src={`data:${item.photoType};base64,${item.photo}`}
 								/>
 							</Grid>
@@ -227,12 +244,18 @@ const ProfilePage = () => {
 					<GridList cellHeight={230} cols={3} spacing={15}>
 						{bookmarks.map((item) => (
 							<GridListTile key={item._id}>
-								<img src={`data:${item.PhotoType};base64,${item.Photo}`} alt={item.Title} />
+								<img
+									src={`data:${item.PhotoType};base64,${item.Photo}`}
+									alt={item.Title}
+								/>
 								<GridListTileBar
 									title={item.Title}
 									subtitle={<span>By : {item.PostedBy.Name}</span>}
 									actionIcon={
-										<IconButton aria-label={`info about`} className={classes.icon}>
+										<IconButton
+											aria-label={`info about`}
+											className={classes.icon}
+										>
 											<DeleteIcon />
 										</IconButton>
 									}
@@ -246,7 +269,11 @@ const ProfilePage = () => {
 			<Dialog onClose={handleEditClose} open={openEdit} className={classes.dialogContainer}>
 				<DialogTitle disableTypography className={classes.dialogTitle}>
 					<Typography variant="h6">Profile settings</Typography>
-					<IconButton aria-label="close" className={classes.closeButton} onClick={handleEditClose}>
+					<IconButton
+						aria-label="close"
+						className={classes.closeButton}
+						onClick={handleEditClose}
+					>
 						<CloseIcon />
 					</IconButton>
 				</DialogTitle>
@@ -259,7 +286,7 @@ const ProfilePage = () => {
 					</Button>
 				</DialogActions>
 			</Dialog>
-		</React.Fragment>
+		</>
 	);
 };
 
